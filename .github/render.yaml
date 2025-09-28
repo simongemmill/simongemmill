@@ -1,0 +1,13 @@
+# Exported from Render on 2025-09-28T08:28:57Z
+version: "1"
+services:
+- type: web
+  name: https://github.com/simongemmill/flask-dashboard
+  runtime: python
+  repo: https://github.com/simongemmill/simongemmill
+  plan: free
+  region: oregon
+  buildCommand: pip install -r requirements.txt
+  buildCommand: gunicorn app:app
+  startCommand: gunicorn --worker-class eventlet -w 1 app:app
+  autoDeployTrigger: commit
