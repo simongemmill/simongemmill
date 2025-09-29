@@ -1,82 +1,44 @@
-from flask import Flask, render_template
-from flask_socketio import SocketIO, emit
-from flask_cors import CORS
-import threading
-import time
-import redis
+from flask import Flask, render_template, request, jsonify
+from flask_session import Session
+from redis import Redis
 import os
+from dotenv import load_dotenv
 
-# Initialize Flask app with custom folders
-app = Flask(__name__, static_folder='static', template_folder='templates')
-CORS(app)
-socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
+# Load environment variables
+load_dotenv('redis.env')
 
-# Load Redis URI from environment or fallback
-redis_uri = os.getenv("REDIS_URL")
-redis_client = redis.Redis.from_url(redis_uri) if redis_uri else None
+app = Flask(__name__)
 
-# Initial state
-state = {
-    "timeline": 0.0,
-    "yen_counter": -3.0,
-    "yo_counter": 0.0,
-    "statoshi_balance": 1_000_000_000,
-    "p_balance": 0.0,
-    "ten_balance": 0.0
-}
+# Session config using Redis
+app.config['SESSION_TYPE'] = os.getenv('SESSION_TYPE', 'redis')
+app.config['SESSION_REDIS'] = Redis(
+    host=os.getenv('REDIS_HOST', 'localhost'),
+    port=int(os.getenv('REDIS_PORT', 6379)),
+    password=os.getenv('REDIS_PASSWORD', None),
+    db=int(os.getenv('REDIS_DB', 0))
+)
+Session(app)
 
-unit = 1.0
-updatesPaused = False
-
+# Homepage route
 @app.route('/')
 def index():
-    return "Dashboard backend is running"
+    return render_template('index.html')
 
-@app.route('/start', methods=['GET'])
-def start_route():
-    global updatesPaused
-    updatesPaused = False
-    return "Updates resumed"
+# Example API route
+@app.route('/api/status', methods=['GET'])
+def status():
+    return jsonify({"status": "running", "redis": True})
 
-@app.route('/pause', methods=['GET'])
-def pause_route():
-    global updatesPaused
-    updatesPaused = True
-    return "Updates paused"
-
-@app.route('/')
-def index():
-    return render_template("index.html")
-
-def reset_route():
-    state["timeline"] = 0.0
-    return "Timeline reset"
-
-def background_task():
-    global updatesPaused
-    while True:
-        try:
-            if not updatesPaused:
-                state["timeline"] += 8.497
-                state["yen_counter"] += state["timeline"]
-                state["yo_counter"] += 1_000_000 * unit
-                state["p_balance"] += 9.0
-                state["ten_balance"] += 9.0
-                state["ten_balance"] *= 1.15
-
-                socketio.emit("state_update", state)
-
-                if redis_client:
-                    redis_client.set("latest_timeline", state["timeline"])
-
-            time.sleep(9)
-
-        except Exception as e:
-            print("Background task error:", e)
-            time.sleep(1)
-
-# Start background thread
-threading.Thread(target=background_task, daemon=True).start()
+# Optional: Redis test route
+@app.route('/api/redis-test', methods=['GET'])
+def redis_test():
+    r = app.config['SESSION_REDIS']
+    try:
+        r.set('test-key', 'hello')
+        value = r.get('test-key').decode('utf-8')
+        return jsonify({"redis_value": value})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=32)  # Localhost or Render
+    app.run(debug=True, port=5000)

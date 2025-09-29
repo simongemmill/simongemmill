@@ -39,6 +39,12 @@ render.yaml
 *.bak
 *.bk
 
+# 🔒 Security-sensitive files
+.env*
+*.vault.txt
+*.key
+redis.env
+
 # 📚 Documentation
 LICENSE
 README.md
