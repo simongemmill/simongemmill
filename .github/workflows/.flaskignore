@@ -1,0 +1,46 @@
+# 🔒 Sensitive files
+.env*
+*.vault.txt
+*.key
+redis.env.env
+
+# 🐍 Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# 🧪 Test and debug logs
+*.log
+*.bak
+*.bk
+
+# 📦 Build and dependency folders
+build/
+dist/
+*.egg-info/
+
+# 🖼️ Static assets (optional if managed externally)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.svg
+*.woff
+*.woff2
+*.ttf
+
+# 🚀 Deployment scripts
+deploy.sh
+
+# 📄 HTML verification files
+google*.html
+yandex*.html
+BingSiteAuth.xml
+sitemap*.xml
+robots.txt
+
+# 🧠 IDE/editor configs
+.vscode/
+.idea/
+*.swp
