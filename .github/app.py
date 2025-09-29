@@ -6,7 +6,8 @@ import time
 import redis
 import os
 
-app = Flask(__name__)
+# Initialize Flask app with custom folders
+app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
 socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
 
@@ -43,7 +44,10 @@ def pause_route():
     updatesPaused = True
     return "Updates paused"
 
-@app.route('/reset', methods=['GET'])
+@app.route('/')
+def index():
+    return render_template("index.html")
+
 def reset_route():
     state["timeline"] = 0.0
     return "Timeline reset"
